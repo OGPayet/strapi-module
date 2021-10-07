@@ -182,7 +182,7 @@ export class Strapi extends Hookable {
         token = session.token
       }
     }
-    if (!token) {
+    if (!token && this.$cookies) {
       token = this.$cookies.get(this.options.key)
     }
     return token
@@ -193,10 +193,12 @@ export class Strapi extends Hookable {
 
     const clientStorage = this.getClientStorage()
     clientStorage && clientStorage.setItem(this.options.key, JSON.stringify({ token, expires }))
-    this.$cookies.set(this.options.key, token, {
-      ...this.options.cookie,
-      expires
-    })
+    if (this.$cookies) {
+        this.$cookies.set(this.options.key, token, {
+          ...this.options.cookie,
+          expires
+        })
+    }
     this.$http.setToken(token, 'Bearer')
   }
 
@@ -204,7 +206,9 @@ export class Strapi extends Hookable {
     this.$http.setToken(false)
     const clientStorage = this.getClientStorage()
     clientStorage && clientStorage.removeItem(this.options.key)
-    this.$cookies.remove(this.options.key)
+    if (this.$cookies) {
+        this.$cookies.remove(this.options.key)
+    }
   }
 
   private syncToken (jwt?) {
